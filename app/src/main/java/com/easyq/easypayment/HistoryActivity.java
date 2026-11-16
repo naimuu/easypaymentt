@@ -1,8 +1,11 @@
 package com.easyq.easypayment;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -22,12 +25,15 @@ import java.util.List;
 public class HistoryActivity extends AppCompatActivity implements TransactionAdapter.OnItemActionListener {
 
     private RecyclerView rvHistory;
-    private TextView tvHistoryEmpty;
-    private ChipGroup chipGroupProvider;
+    private TextView tvHistoryEmpty, tvFilterSummary;
+    private EditText etSearchHistory;
+    private ChipGroup chipGroupStatus, chipGroupProvider;
     private TransactionAdapter adapter;
-    private final List<MfsTransaction> currentList = new ArrayList<>();
-    private List<MfsTransaction> rawList = new ArrayList<>();
+    private final List<MfsTransaction> displayedList = new ArrayList<>();
+
+    private String selectedStatus = "UNUSED"; // Default: Show Pending/Unused list first!
     private String selectedProvider = "ALL";
+    private String currentSearchQuery = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,12 +48,28 @@ public class HistoryActivity extends AppCompatActivity implements TransactionAda
 
         rvHistory = findViewById(R.id.rvHistory);
         tvHistoryEmpty = findViewById(R.id.tvHistoryEmpty);
+        tvFilterSummary = findViewById(R.id.tvFilterSummary);
+        etSearchHistory = findViewById(R.id.etSearchHistory);
+        chipGroupStatus = findViewById(R.id.chipGroupStatus);
         chipGroupProvider = findViewById(R.id.chipGroupProvider);
 
         rvHistory.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TransactionAdapter(this, currentList, this);
+        adapter = new TransactionAdapter(this, displayedList, this);
         rvHistory.setAdapter(adapter);
 
+        // Status Tabs Listener (Pending/Unused vs Used/Activated)
+        chipGroupStatus.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (checkedIds.contains(R.id.chipStatusPending)) {
+                selectedStatus = "UNUSED";
+            } else if (checkedIds.contains(R.id.chipStatusUsed)) {
+                selectedStatus = "USED";
+            } else {
+                selectedStatus = "ALL";
+            }
+            loadAndFilterData();
+        });
+
+        // Provider Filter Listener
         chipGroupProvider.setOnCheckedStateChangeListener((group, checkedIds) -> {
             if (checkedIds.contains(R.id.chipBkash)) {
                 selectedProvider = "bKash";
@@ -58,28 +80,47 @@ public class HistoryActivity extends AppCompatActivity implements TransactionAda
             } else {
                 selectedProvider = "ALL";
             }
-            filterList();
+            loadAndFilterData();
         });
 
-        loadTransactions();
+        // Live Search Input Listener
+        etSearchHistory.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                currentSearchQuery = s.toString().trim();
+                loadAndFilterData();
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        loadAndFilterData();
     }
 
-    private void loadTransactions() {
-        rawList = TransactionDatabaseHelper.getInstance(this).getAllTransactions(0);
-        filterList();
-    }
+    private void loadAndFilterData() {
+        TransactionDatabaseHelper db = TransactionDatabaseHelper.getInstance(this);
+        List<MfsTransaction> rawList = db.getFilteredTransactions(selectedStatus, currentSearchQuery);
 
-    private void filterList() {
-        currentList.clear();
+        displayedList.clear();
         for (MfsTransaction tx : rawList) {
             if ("ALL".equalsIgnoreCase(selectedProvider) || selectedProvider.equalsIgnoreCase(tx.getProvider())) {
-                currentList.add(tx);
+                displayedList.add(tx);
             }
         }
         adapter.notifyDataSetChanged();
 
-        if (currentList.isEmpty()) {
+        // Update Summary Banner
+        int count = displayedList.size();
+        String statusLabel = "ALL".equalsIgnoreCase(selectedStatus) ? "All" : ("UNUSED".equalsIgnoreCase(selectedStatus) ? "Pending (Unused)" : "Used (Activated)");
+        tvFilterSummary.setText("Showing " + count + " " + statusLabel + " transactions");
+
+        if (displayedList.isEmpty()) {
             tvHistoryEmpty.setVisibility(View.VISIBLE);
+            tvHistoryEmpty.setText("No " + statusLabel + " transactions found.");
         } else {
             tvHistoryEmpty.setVisibility(View.GONE);
         }
@@ -87,7 +128,7 @@ public class HistoryActivity extends AppCompatActivity implements TransactionAda
 
     @Override
     public void onTransactionUpdated() {
-        loadTransactions();
+        loadAndFilterData();
     }
 
     @Override

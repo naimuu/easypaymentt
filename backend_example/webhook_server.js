@@ -11,7 +11,7 @@ const app = express();
 app.use(express.json());
 
 const SECRET_API_KEY = process.env.API_SECRET_KEY || "YOUR_SUPER_SECRET_KEY_HERE";
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5050; // Changed from 3000 to 5050 to keep port 3000 free
 
 // Middleware for authentication
 function authMiddleware(req, res, next) {

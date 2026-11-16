@@ -55,10 +55,12 @@ public class SmsBroadcastReceiver extends BroadcastReceiver {
         // Parse with MfsSmsParser
         MfsTransaction tx = MfsSmsParser.parse(senderAddress, completeMessage, timestamp);
         if (tx != null) {
+            tx.setReceiverAccount(ApiClient.getReceiverAccount(context));
             Log.i(TAG, "MFS Payment Detected! Provider: " + tx.getProvider()
                     + " | Type: " + tx.getTransactionType()
                     + " | Amount: " + tx.getAmount()
                     + " | Sender: " + tx.getSenderNumber()
+                    + " | Receiver: " + tx.getReceiverAccount()
                     + " | TrxID: " + tx.getTrxId());
 
             // Save to local database

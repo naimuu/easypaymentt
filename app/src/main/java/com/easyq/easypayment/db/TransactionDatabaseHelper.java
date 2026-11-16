@@ -8,14 +8,17 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 import com.easyq.easypayment.models.MfsTransaction;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class TransactionDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "easy_payment.db";
-    private static final int DATABASE_VERSION = 1;
+    private static final int DATABASE_VERSION = 2;
 
     public static final String TABLE_TRANSACTIONS = "transactions";
     public static final String COL_ID = "id";
@@ -24,6 +27,7 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_AMOUNT = "amount";
     public static final String COL_CURRENCY = "currency";
     public static final String COL_SENDER_NUMBER = "sender_number";
+    public static final String COL_RECEIVER_ACCOUNT = "receiver_account";
     public static final String COL_TRX_ID = "trx_id";
     public static final String COL_REFERENCE = "reference";
     public static final String COL_BALANCE_AFTER = "balance_after";
@@ -36,6 +40,9 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_HTTP_STATUS = "http_status";
     public static final String COL_API_RESPONSE = "api_response";
     public static final String COL_LAST_ATTEMPT = "last_attempt";
+    public static final String COL_PACKAGE_NAME = "package_name";
+    public static final String COL_ACTIVATION_STATUS = "activation_status"; // "UNUSED" vs "USED"
+    public static final String COL_ACTIVATED_AT = "activated_at";
 
     private static TransactionDatabaseHelper instance;
 
@@ -59,6 +66,7 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
                 + COL_AMOUNT + " REAL, "
                 + COL_CURRENCY + " TEXT, "
                 + COL_SENDER_NUMBER + " TEXT, "
+                + COL_RECEIVER_ACCOUNT + " TEXT, "
                 + COL_TRX_ID + " TEXT UNIQUE, "
                 + COL_REFERENCE + " TEXT, "
                 + COL_BALANCE_AFTER + " REAL, "
@@ -70,20 +78,30 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
                 + COL_SYNC_STATUS + " INTEGER DEFAULT 0, "
                 + COL_HTTP_STATUS + " INTEGER DEFAULT 0, "
                 + COL_API_RESPONSE + " TEXT, "
-                + COL_LAST_ATTEMPT + " INTEGER DEFAULT 0"
+                + COL_LAST_ATTEMPT + " INTEGER DEFAULT 0, "
+                + COL_PACKAGE_NAME + " TEXT, "
+                + COL_ACTIVATION_STATUS + " TEXT DEFAULT 'UNUSED', "
+                + COL_ACTIVATED_AT + " TEXT"
                 + ");";
         db.execSQL(createTable);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRANSACTIONS);
-        onCreate(db);
+        if (oldVersion < 2) {
+            try {
+                db.execSQL("ALTER TABLE " + TABLE_TRANSACTIONS + " ADD COLUMN " + COL_RECEIVER_ACCOUNT + " TEXT;");
+                db.execSQL("ALTER TABLE " + TABLE_TRANSACTIONS + " ADD COLUMN " + COL_PACKAGE_NAME + " TEXT;");
+                db.execSQL("ALTER TABLE " + TABLE_TRANSACTIONS + " ADD COLUMN " + COL_ACTIVATION_STATUS + " TEXT DEFAULT 'UNUSED';");
+                db.execSQL("ALTER TABLE " + TABLE_TRANSACTIONS + " ADD COLUMN " + COL_ACTIVATED_AT + " TEXT;");
+            } catch (Exception e) {
+                // If migration fails, recreate
+                db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRANSACTIONS);
+                onCreate(db);
+            }
+        }
     }
 
-    /**
-     * Checks if a TrxID already exists in local database to avoid duplicates.
-     */
     public boolean exists(String trxId) {
         if (trxId == null) return false;
         SQLiteDatabase db = getReadableDatabase();
@@ -93,9 +111,6 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
         return exists;
     }
 
-    /**
-     * Inserts a new transaction. Returns row ID or -1 if failed or duplicate.
-     */
     public synchronized long insertTransaction(MfsTransaction tx) {
         if (exists(tx.getTrxId())) {
             return -1;
@@ -107,6 +122,7 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
         cv.put(COL_AMOUNT, tx.getAmount());
         cv.put(COL_CURRENCY, tx.getCurrency());
         cv.put(COL_SENDER_NUMBER, tx.getSenderNumber());
+        cv.put(COL_RECEIVER_ACCOUNT, tx.getReceiverAccount());
         cv.put(COL_TRX_ID, tx.getTrxId());
         cv.put(COL_REFERENCE, tx.getReference());
         cv.put(COL_BALANCE_AFTER, tx.getBalanceAfter());
@@ -119,15 +135,15 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
         cv.put(COL_HTTP_STATUS, tx.getHttpStatusCode());
         cv.put(COL_API_RESPONSE, tx.getApiResponseBody());
         cv.put(COL_LAST_ATTEMPT, tx.getLastAttemptTimestamp());
+        cv.put(COL_PACKAGE_NAME, tx.getPackageName());
+        cv.put(COL_ACTIVATION_STATUS, tx.getActivationStatus() != null ? tx.getActivationStatus() : "UNUSED");
+        cv.put(COL_ACTIVATED_AT, tx.getActivatedAt());
 
         long id = db.insert(TABLE_TRANSACTIONS, null, cv);
         tx.setId(id);
         return id;
     }
 
-    /**
-     * Updates sync result after posting to Easy Q API.
-     */
     public synchronized void updateSyncStatus(long id, int status, int httpCode, String response) {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
@@ -139,13 +155,46 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
     }
 
     /**
-     * Returns all transactions ordered by ID desc.
+     * Activates a package for a given transaction and marks it as USED.
      */
-    public List<MfsTransaction> getAllTransactions(int limit) {
+    public synchronized boolean markPackageActivated(long id, String packageName) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ACTIVATION_STATUS, "USED");
+        cv.put(COL_PACKAGE_NAME, packageName);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US);
+        cv.put(COL_ACTIVATED_AT, sdf.format(new Date()));
+        int rows = db.update(TABLE_TRANSACTIONS, cv, COL_ID + " = ?", new String[]{String.valueOf(id)});
+        return rows > 0;
+    }
+
+    /**
+     * Returns transactions filtered by status ("UNUSED", "USED", or "ALL") and search query.
+     */
+    public List<MfsTransaction> getFilteredTransactions(String statusFilter, String query) {
         List<MfsTransaction> list = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
-        String query = "SELECT * FROM " + TABLE_TRANSACTIONS + " ORDER BY " + COL_ID + " DESC" + (limit > 0 ? " LIMIT " + limit : "");
-        Cursor c = db.rawQuery(query, null);
+
+        StringBuilder sql = new StringBuilder("SELECT * FROM " + TABLE_TRANSACTIONS + " WHERE 1=1");
+        List<String> args = new ArrayList<>();
+
+        if ("UNUSED".equalsIgnoreCase(statusFilter)) {
+            sql.append(" AND " + COL_ACTIVATION_STATUS + " = 'UNUSED'");
+        } else if ("USED".equalsIgnoreCase(statusFilter)) {
+            sql.append(" AND " + COL_ACTIVATION_STATUS + " = 'USED'");
+        }
+
+        if (query != null && !query.trim().isEmpty()) {
+            sql.append(" AND (" + COL_TRX_ID + " LIKE ? OR " + COL_SENDER_NUMBER + " LIKE ? OR " + COL_PACKAGE_NAME + " LIKE ?)");
+            String q = "%" + query.trim() + "%";
+            args.add(q);
+            args.add(q);
+            args.add(q);
+        }
+
+        sql.append(" ORDER BY " + COL_ID + " DESC");
+
+        Cursor c = db.rawQuery(sql.toString(), args.toArray(new String[0]));
         if (c.moveToFirst()) {
             do {
                 list.add(cursorToModel(c));
@@ -155,9 +204,21 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
         return list;
     }
 
-    /**
-     * Returns failed or pending transactions for retry.
-     */
+    public List<MfsTransaction> getAllTransactions(int limit) {
+        return getFilteredTransactions("ALL", null);
+    }
+
+    public int getCountByStatus(String status) {
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TRANSACTIONS + " WHERE " + COL_ACTIVATION_STATUS + " = ?", new String[]{status});
+        int count = 0;
+        if (c.moveToFirst()) {
+            count = c.getInt(0);
+        }
+        c.close();
+        return count;
+    }
+
     public List<MfsTransaction> getPendingOrFailedTransactions() {
         List<MfsTransaction> list = new ArrayList<>();
         SQLiteDatabase db = getReadableDatabase();
@@ -171,9 +232,6 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
         return list;
     }
 
-    /**
-     * Statistics for today.
-     */
     public TodayStats getTodayStats() {
         TodayStats stats = new TodayStats();
         Calendar cal = Calendar.getInstance();
@@ -190,15 +248,15 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
         }
         c.close();
 
-        Cursor c2 = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TRANSACTIONS + " WHERE " + COL_SYNC_STATUS + " = 1", null);
+        Cursor c2 = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TRANSACTIONS + " WHERE " + COL_ACTIVATION_STATUS + " = 'UNUSED'", null);
         if (c2.moveToFirst()) {
-            stats.totalSynced = c2.getInt(0);
+            stats.pendingCount = c2.getInt(0);
         }
         c2.close();
 
-        Cursor c3 = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TRANSACTIONS, null);
+        Cursor c3 = db.rawQuery("SELECT COUNT(*) FROM " + TABLE_TRANSACTIONS + " WHERE " + COL_ACTIVATION_STATUS + " = 'USED'", null);
         if (c3.moveToFirst()) {
-            stats.totalCount = c3.getInt(0);
+            stats.usedCount = c3.getInt(0);
         }
         c3.close();
 
@@ -208,8 +266,8 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
     public static class TodayStats {
         public int countToday = 0;
         public double totalAmountToday = 0.0;
-        public int totalSynced = 0;
-        public int totalCount = 0;
+        public int pendingCount = 0;
+        public int usedCount = 0;
     }
 
     private MfsTransaction cursorToModel(Cursor c) {
@@ -220,6 +278,7 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
         tx.setAmount(c.getDouble(c.getColumnIndexOrThrow(COL_AMOUNT)));
         tx.setCurrency(c.getString(c.getColumnIndexOrThrow(COL_CURRENCY)));
         tx.setSenderNumber(c.getString(c.getColumnIndexOrThrow(COL_SENDER_NUMBER)));
+        tx.setReceiverAccount(c.getString(c.getColumnIndexOrThrow(COL_RECEIVER_ACCOUNT)));
         tx.setTrxId(c.getString(c.getColumnIndexOrThrow(COL_TRX_ID)));
         tx.setReference(c.getString(c.getColumnIndexOrThrow(COL_REFERENCE)));
         tx.setBalanceAfter(c.getDouble(c.getColumnIndexOrThrow(COL_BALANCE_AFTER)));
@@ -232,6 +291,9 @@ public class TransactionDatabaseHelper extends SQLiteOpenHelper {
         tx.setHttpStatusCode(c.getInt(c.getColumnIndexOrThrow(COL_HTTP_STATUS)));
         tx.setApiResponseBody(c.getString(c.getColumnIndexOrThrow(COL_API_RESPONSE)));
         tx.setLastAttemptTimestamp(c.getLong(c.getColumnIndexOrThrow(COL_LAST_ATTEMPT)));
+        tx.setPackageName(c.getString(c.getColumnIndexOrThrow(COL_PACKAGE_NAME)));
+        tx.setActivationStatus(c.getString(c.getColumnIndexOrThrow(COL_ACTIVATION_STATUS)));
+        tx.setActivatedAt(c.getString(c.getColumnIndexOrThrow(COL_ACTIVATED_AT)));
         return tx;
     }
 }

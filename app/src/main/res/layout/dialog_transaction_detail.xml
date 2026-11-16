@@ -25,15 +25,16 @@
             android:text="Tk 500.00"
             android:textSize="24sp"
             android:textStyle="bold"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:textColor="@color/text_primary" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/card_stroke"
-            android:layout_marginVertical="12dp" />
+            android:layout_marginVertical="10dp" />
 
+        <!-- TrxID -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -48,13 +49,15 @@
             android:text="9K48ABCDEF"
             android:textSize="15sp"
             android:textIsSelectable="true"
+            android:fontFamily="monospace"
             android:textStyle="bold"
             android:textColor="@color/text_primary" />
 
+        <!-- Customer / Sender -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Sender Mobile Number:"
+            android:text="Customer Mobile Number (Sender):"
             android:textSize="12sp"
             android:layout_marginTop="8dp"
             android:textColor="@color/text_muted" />
@@ -69,10 +72,46 @@
             android:textStyle="bold"
             android:textColor="@color/text_primary" />
 
+        <!-- Merchant / Receiver -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Time:"
+            android:text="Merchant Account / Receiver SIM:"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_muted" />
+
+        <TextView
+            android:id="@+id/tvDetailReceiver"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="01700000000"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary" />
+
+        <!-- Package Name & Activation Status -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Package Activation Status:"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_muted" />
+
+        <TextView
+            android:id="@+id/tvDetailPackage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="UNUSED (No package claimed yet)"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary" />
+
+        <!-- Timestamp -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Date &amp; Time:"
             android:textSize="12sp"
             android:layout_marginTop="8dp"
             android:textColor="@color/text_muted" />
@@ -82,15 +121,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="2026-11-16 12:30:00"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:textColor="@color/text_secondary" />
 
+        <!-- Raw SMS -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Original Raw SMS:"
             android:textSize="12sp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/text_muted" />
 
         <TextView
@@ -100,16 +140,17 @@
             android:padding="8dp"
             android:background="#F1F5F9"
             android:text="You have received Tk 500.00..."
-            android:textSize="13sp"
+            android:textSize="12sp"
             android:textIsSelectable="true"
             android:textColor="@color/text_primary" />
 
+        <!-- API Status -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="API Response Status:"
+            android:text="Easy Q Webhook API Status:"
             android:textSize="12sp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:textColor="@color/text_muted" />
 
         <TextView
@@ -119,30 +160,47 @@
             android:padding="8dp"
             android:background="#F1F5F9"
             android:text="HTTP 200 OK"
-            android:textSize="12sp"
+            android:textSize="11sp"
+            android:fontFamily="monospace"
             android:textColor="@color/text_secondary" />
 
+        <!-- Action Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="18dp"
+            android:orientation="vertical"
+            android:layout_marginTop="16dp"
             android:gravity="end">
 
             <Button
-                android:id="@+id/btnClose"
-                style="@style/Widget.Material3.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Close" />
-
-            <Button
-                android:id="@+id/btnResend"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:id="@+id/btnActivateInApp"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
                 android:backgroundTint="@color/secondary"
-                android:text="Resend to API" />
+                android:text="⚡ Activate Package with this TrxID" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="6dp"
+                android:gravity="end">
+
+                <Button
+                    android:id="@+id/btnClose"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Close" />
+
+                <Button
+                    android:id="@+id/btnResend"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="Resend to API" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>

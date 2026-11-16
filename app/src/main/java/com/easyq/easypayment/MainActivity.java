@@ -43,7 +43,8 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
     private View viewStatusDot;
     private TextView tvServiceTitle, tvServiceSubtitle;
     private SwitchMaterial switchService;
-    private TextView tvTodayCount, tvTodayAmount;
+    private TextView tvTodayCount, tvTodayAmount, tvPendingCount, tvUsedCount;
+    private View layoutCardPending, layoutCardUsed;
     private LinearLayout layoutPermissionWarning;
     private Button btnFixPermissions, btnQuickSimulator, btnQuickHistory;
     private ImageButton btnSettings;
@@ -126,6 +127,10 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
         switchService = findViewById(R.id.switchService);
         tvTodayCount = findViewById(R.id.tvTodayCount);
         tvTodayAmount = findViewById(R.id.tvTodayAmount);
+        tvPendingCount = findViewById(R.id.tvPendingCount);
+        tvUsedCount = findViewById(R.id.tvUsedCount);
+        layoutCardPending = findViewById(R.id.layoutCardPending);
+        layoutCardUsed = findViewById(R.id.layoutCardUsed);
         layoutPermissionWarning = findViewById(R.id.layoutPermissionWarning);
         btnFixPermissions = findViewById(R.id.btnFixPermissions);
         btnQuickSimulator = findViewById(R.id.btnQuickSimulator);
@@ -145,6 +150,12 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
         btnQuickSimulator.setOnClickListener(v -> startActivity(new Intent(this, TestParserActivity.class)));
         btnQuickHistory.setOnClickListener(v -> startActivity(new Intent(this, HistoryActivity.class)));
         tvViewAll.setOnClickListener(v -> startActivity(new Intent(this, HistoryActivity.class)));
+        if (layoutCardPending != null) {
+            layoutCardPending.setOnClickListener(v -> startActivity(new Intent(this, HistoryActivity.class)));
+        }
+        if (layoutCardUsed != null) {
+            layoutCardUsed.setOnClickListener(v -> startActivity(new Intent(this, HistoryActivity.class)));
+        }
 
         switchService.setOnCheckedChangeListener((buttonView, isChecked) -> {
             ApiClient.getPrefs(this).edit().putBoolean(ApiClient.KEY_SERVICE_ENABLED, isChecked).apply();
@@ -259,6 +270,8 @@ public class MainActivity extends AppCompatActivity implements TransactionAdapte
 
         tvTodayCount.setText(String.valueOf(stats.countToday));
         tvTodayAmount.setText(String.format(Locale.US, "Tk %.2f", stats.totalAmountToday));
+        if (tvPendingCount != null) tvPendingCount.setText(String.valueOf(stats.pendingCount));
+        if (tvUsedCount != null) tvUsedCount.setText(String.valueOf(stats.usedCount));
 
         recentList.clear();
         recentList.addAll(db.getAllTransactions(10));

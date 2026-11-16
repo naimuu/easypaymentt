@@ -47,6 +47,15 @@ public class MfsTransaction {
     @SerializedName("deviceId")
     private String deviceId;
 
+    @SerializedName("packageName")
+    private String packageName;
+
+    @SerializedName("activationStatus")
+    private String activationStatus = "UNUSED"; // "UNUSED" or "USED"
+
+    @SerializedName("activatedAt")
+    private String activatedAt;
+
     // Local Sync State: 0 = Pending, 1 = Synced (HTTP 200), 2 = Failed
     private int syncStatus = 0;
     private int httpStatusCode = 0;
@@ -100,6 +109,15 @@ public class MfsTransaction {
 
     public String getDeviceId() { return deviceId; }
     public void setDeviceId(String deviceId) { this.deviceId = deviceId; }
+
+    public String getPackageName() { return packageName; }
+    public void setPackageName(String packageName) { this.packageName = packageName; }
+
+    public String getActivationStatus() { return activationStatus != null ? activationStatus : "UNUSED"; }
+    public void setActivationStatus(String activationStatus) { this.activationStatus = activationStatus; }
+
+    public String getActivatedAt() { return activatedAt; }
+    public void setActivatedAt(String activatedAt) { this.activatedAt = activatedAt; }
 
     public int getSyncStatus() { return syncStatus; }
     public void setSyncStatus(int syncStatus) { this.syncStatus = syncStatus; }

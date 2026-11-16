@@ -123,6 +123,9 @@ public class TestParserActivity extends AppCompatActivity {
         btnSendParsedToApi.setOnClickListener(v -> {
             if (parsedTx == null) return;
 
+            parsedTx.setReceiverAccount(ApiClient.getReceiverAccount(this));
+            TransactionDatabaseHelper.getInstance(this).insertTransaction(parsedTx);
+
             tvApiTestFeedback.setVisibility(View.VISIBLE);
             tvApiTestFeedback.setText("Sending to Easy Q API webhook...");
 

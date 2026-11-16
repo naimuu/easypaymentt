@@ -16,18 +16,29 @@ CREATE TABLE IF NOT EXISTS `mfs_transactions` (
     `raw_message` TEXT NULL,
     `device_id` VARCHAR(128) NULL,
     `package_id` INT NULL COMMENT 'ID of activated package if matched',
-    `activation_status` ENUM('PENDING', 'ACTIVATED', 'MISMATCH', 'REFUNDED') DEFAULT 'PENDING',
+    `package_name` VARCHAR(128) NULL COMMENT 'Name of activated package',
+    `activation_status` ENUM('UNUSED', 'USED', 'REFUNDED') DEFAULT 'UNUSED',
+    `activated_at` DATETIME NULL,
     `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     INDEX `idx_trx_id` (`trx_id`),
     INDEX `idx_sender_number` (`sender_number`),
     INDEX `idx_activation_status` (`activation_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Optional: Packages table for automated activation
-CREATE TABLE IF NOT EXISTS `easy_packages` (
-    `id` INT AUTO_INCREMENT PRIMARY KEY,
-    `package_name` VARCHAR(100) NOT NULL,
-    `price` DECIMAL(10,2) NOT NULL,
-    `duration_days` INT NOT NULL,
-    `is_active` TINYINT(1) DEFAULT 1
-);
+-- ====================================================================
+-- USEFUL SQL QUERIES TO CHECK USED VS UNUSED TrxIDs
+-- ====================================================================
+
+-- 1. Check all UNUSED (অব্যবহৃত) transactions ready for package activation:
+-- SELECT * FROM mfs_transactions WHERE activation_status = 'UNUSED' ORDER BY id DESC;
+
+-- 2. Check all USED (ইতিমধ্যে ব্যবহৃত) transactions:
+-- SELECT * FROM mfs_transactions WHERE activation_status = 'USED' ORDER BY id DESC;
+
+-- 3. Check a specific TrxID submitted by a customer:
+-- SELECT * FROM mfs_transactions WHERE trx_id = '9K48ABCDEF';
+
+-- 4. Mark a TrxID as USED when activating a package:
+-- UPDATE mfs_transactions 
+-- SET activation_status = 'USED', package_id = 1, package_name = '30 Days VIP Package', activated_at = NOW() 
+-- WHERE trx_id = '9K48ABCDEF' AND activation_status = 'UNUSED';

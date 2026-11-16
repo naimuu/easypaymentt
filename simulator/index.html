@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easy Payment - Android Simulator & Debug Console</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Hind Siliguri', -apple-system, sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    /* Hide scrollbar for phone screen */
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    @keyframes slideDown {
+      0% { transform: translateY(-100%); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-down {
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <!-- Top Navigation Header -->
+  <header class="bg-slate-900 border-b border-slate-800 px-6 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-500/20">
+        EQ
+      </div>
+      <div>
+        <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+          Easy Payment • Android Simulator
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">Live IDE Mode</span>
+        </h1>
+        <p class="text-xs text-slate-400">এন্ড্রয়েড ফোন ও এসএমএস অটোমেশন সিমুলেটর (Easy Q Webhook)</p>
+      </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="flex items-center gap-4 text-xs">
+      <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+        <span class="text-slate-400">সিমুলেটেড এসএমএস:</span>
+        <span id="top-sms-count" class="font-bold text-blue-400 ml-1">0</span>
+      </div>
+      <div class="bg-slate-800/80 px-3 py-1.5 rounded-lg border border-slate-700">
+        <span class="text-slate-400">ওয়েবহুক সিঙ্ক:</span>
+        <span id="top-sync-count" class="font-bold text-emerald-400 ml-1">0</span>
+      </div>
+      <button onclick="resetAll()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs transition border border-slate-700">
+        রিসেট করুন
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace: Split View -->
+  <main class="flex-1 max-w-[1600px] w-full mx-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    
+    <!-- LEFT COLUMN: ANDROID MOBILE SCREEN MOCKUP (lg:col-span-5) -->
+    <div class="lg:col-span-5 flex flex-col items-center">
+      
+      <div class="mb-3 text-center">
+        <span class="text-xs text-slate-400 font-semibold flex items-center justify-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          ভার্চুয়াল এন্ড্রয়েড ফোন (Pixel 8 View)
+        </span>
+      </div>
+
+      <!-- Realistic Smartphone Chassis -->
+      <div class="relative w-[360px] h-[720px] bg-slate-900 rounded-[48px] p-3 shadow-2xl border-4 border-slate-700 ring-2 ring-slate-800/80 flex flex-col">
+        
+        <!-- Phone Speaker & Camera Notch -->
+        <div class="absolute top-4 left-1/2 -translate-x-1/2 w-28 h-4 bg-slate-950 rounded-full flex items-center justify-center gap-2 z-40">
+          <div class="w-2.5 h-2.5 rounded-full bg-slate-800 border border-slate-700"></div>
+          <div class="w-10 h-1 bg-slate-800 rounded-full"></div>
+        </div>
+
+        <!-- Phone Screen Surface -->
+        <div class="relative w-full h-full bg-[#0B1120] rounded-[38px] overflow-hidden flex flex-col border border-slate-800 text-slate-100">
+
+          <!-- Android Incoming Notification Banner (Slides down when SMS received) -->
+          <div id="heads-up-notification" class="absolute top-2 left-2 right-2 bg-slate-900/95 backdrop-blur-md border border-blue-500/40 rounded-2xl p-3 shadow-2xl z-50 hidden cursor-pointer">
+            <div class="flex items-start gap-2.5">
+              <div class="w-7 h-7 rounded-full bg-blue-600 flex items-center justify-center text-xs text-white shrink-0 mt-0.5">
+                💬
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between">
+                  <span id="notif-sender" class="text-xs font-bold text-white">bKash</span>
+                  <span class="text-[10px] text-slate-400">এখনই</span>
+                </div>
+                <p id="notif-text" class="text-[11px] text-slate-300 truncate mt-0.5">You have received Tk 500.00...</p>
+                <div class="flex items-center gap-2 mt-2">
+                  <span class="text-[10px] font-semibold text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800">
+                    অটো পার্স ও ডাটাবেজে পাঠানো হচ্ছে...
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Status Bar -->
+          <div class="h-9 pt-1.5 px-6 flex items-center justify-between text-[11px] font-semibold text-slate-300 bg-[#1E3A8A] z-20">
+            <span id="phone-clock">12:45</span>
+            <div class="flex items-center gap-1.5 text-[10px]">
+              <span>4G LTE</span>
+              <span>📶</span>
+              <span>🔋 96%</span>
+            </div>
+          </div>
+
+          <!-- Easy Payment App Bar -->
+          <div class="bg-[#1E3A8A] px-4 py-3 flex items-center justify-between shadow z-10">
+            <div class="flex items-center gap-2.5">
+              <!-- Easy Q Logo -->
+              <svg class="w-8 h-8 rounded-full shadow" viewBox="0 0 108 108">
+                <circle cx="54" cy="54" r="50" fill="#1E3A8A" stroke="#0D9488" stroke-width="3"/>
+                <circle cx="52" cy="52" r="26" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+                <path d="M64,64 L84,84 M84,72 L84,84 L72,84" stroke="#10B981" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+                <polygon points="55,36 43,53 51,53 47,68 61,50 53,50" fill="#38BDF8"/>
+              </svg>
+              <div>
+                <h2 class="text-sm font-bold tracking-tight text-white leading-none">Easy Payment</h2>
+                <span class="text-[10px] text-blue-200">Easy Q Payment Webhook Gateway</span>
+              </div>
+            </div>
+            <button onclick="toggleAppTab('settings')" class="p-1 rounded-lg hover:bg-blue-800 text-blue-200 transition">
+              ⚙️
+            </button>
+          </div>
+
+          <!-- App Body (Scrollable) -->
+          <div class="flex-1 overflow-y-auto no-scrollbar p-3.5 space-y-3.5 bg-slate-900 text-slate-100">
+            
+            <!-- Tab: Dashboard -->
+            <div id="tab-dashboard" class="space-y-3.5">
+              <!-- 24/7 Service Status Card -->
+              <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3 flex items-center justify-between shadow-sm">
+                <div class="flex items-center gap-3">
+                  <span id="service-dot" class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <div>
+                    <h4 id="service-label" class="text-xs font-bold text-white">Listening 24/7 for SMS</h4>
+                    <p id="service-sub" class="text-[10px] text-slate-400">Foreground Service ACTIVE</p>
+                  </div>
+                </div>
+                <button id="service-btn" onclick="toggleService()" class="w-11 h-6 bg-emerald-600 rounded-full p-0.5 transition-colors relative flex items-center">
+                  <div id="service-knob" class="w-5 h-5 bg-white rounded-full shadow transform translate-x-5 transition-transform duration-200"></div>
+                </button>
+              </div>
+
+              <!-- Daily Counters -->
+              <div class="grid grid-cols-2 gap-2">
+                <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-3">
+                  <span class="text-[10px] uppercase font-bold text-slate-400">আজকের লেনদেন</span>
+                  <div id="app-count" class="text-xl font-bold text-blue-400 mt-0.5">0 টি</div>
+                </div>
+                <div class="bg-slate-800/80 border border-slate-700/80 rounded-xl p-3">
+                  <span class="text-[10px] uppercase font-bold text-slate-400">মোট সংগৃহীত</span>
+                  <div id="app-total" class="text-base font-bold text-emerald-400 mt-0.5">Tk 0.00</div>
+                </div>
+              </div>
+
+              <!-- Live Received Transactions Feed -->
+              <div>
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-bold text-slate-300">সাম্প্রতিক লেনদেন তালিকা</span>
+                  <span class="text-[10px] text-blue-400">রিয়েলটাইম</span>
+                </div>
+
+                <div id="app-tx-list" class="space-y-2">
+                  <!-- Empty placeholder -->
+                  <div id="empty-state" class="py-8 text-center text-slate-500 text-xs">
+                    এখনো কোনো এসএমএস পাওয়া যায়নি।<br>
+                    ডানপাশের প্যানেল থেকে যেকোনো একটি টেস্ট এসএমএস পাঠান!
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tab: Settings -->
+            <div id="tab-settings" class="space-y-3 hidden">
+              <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-3 space-y-2.5">
+                <h4 class="text-xs font-bold text-blue-400">Easy Q API কনফিগারেশন</h4>
+                <div>
+                  <label class="text-[10px] text-slate-400">API Webhook URL</label>
+                  <input id="cfg-url" type="text" value="https://easyq.example.com/api/payment-webhook" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400">Bearer Secret Token</label>
+                  <input id="cfg-token" type="password" value="easyq_secret_auth_token_999" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                </div>
+                <div>
+                  <label class="text-[10px] text-slate-400">Device ID</label>
+                  <input id="cfg-device" type="text" value="Pixel_8_SIM1" class="w-full mt-1 bg-slate-900 border border-slate-700 rounded-lg p-2 text-xs text-white">
+                </div>
+                <button onclick="toggleAppTab('dashboard')" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold">
+                  সেটিংস সংরক্ষণ করুন
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Android Bottom Navigation Bar -->
+          <div class="h-12 bg-slate-950 border-t border-slate-800 px-8 flex items-center justify-between text-slate-400">
+            <button onclick="toggleAppTab('dashboard')" class="hover:text-white text-xs font-bold">◀ ব্যাক</button>
+            <button onclick="toggleAppTab('dashboard')" class="w-3.5 h-3.5 rounded-full border-2 border-slate-400 hover:border-white"></button>
+            <button onclick="toggleAppTab('dashboard')" class="w-3 h-3 border border-slate-400 hover:border-white"></button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: SMS INJECTOR & LIVE API WEBHOOK INSPECTOR (lg:col-span-7) -->
+    <div class="lg:col-span-7 space-y-5">
+      
+      <!-- Panel 1: SMS Sender Simulator -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="text-base">📲</span> মোবাইল ব্যাংকিং এসএমএস প্রেরক (SMS Injector)
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">নিচের বাটনগুলোতে চাপ দিয়ে ফোনে ফেক বিকাশ/নগদ/রকেট এসএমএস পাঠান</p>
+          </div>
+          <span class="text-xs text-blue-400 font-semibold bg-blue-950/60 px-2.5 py-1 rounded-full border border-blue-800">
+            Simulate SMS
+          </span>
+        </div>
+
+        <!-- Quick Preset Triggers -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+          <button onclick="sendPresetSms('bkash')" class="p-3 bg-gradient-to-br from-[#E2136E]/20 to-[#E2136E]/5 hover:from-[#E2136E]/30 hover:to-[#E2136E]/10 border border-[#E2136E]/40 rounded-xl text-left transition group">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#E2136E]">bKash Received</span>
+              <span class="text-xs opacity-0 group-hover:opacity-100 transition">▶</span>
+            </div>
+            <div class="text-base font-bold text-white mt-1">Tk 500.00</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">from 01712345678</div>
+          </button>
+
+          <button onclick="sendPresetSms('nagad')" class="p-3 bg-gradient-to-br from-[#F7941D]/20 to-[#F7941D]/5 hover:from-[#F7941D]/30 hover:to-[#F7941D]/10 border border-[#F7941D]/40 rounded-xl text-left transition group">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#F7941D]">Nagad Cash In</span>
+              <span class="text-xs opacity-0 group-hover:opacity-100 transition">▶</span>
+            </div>
+            <div class="text-base font-bold text-white mt-1">Tk 1,200.00</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">from 01898765432</div>
+          </button>
+
+          <button onclick="sendPresetSms('rocket')" class="p-3 bg-gradient-to-br from-[#8C3494]/20 to-[#8C3494]/5 hover:from-[#8C3494]/30 hover:to-[#8C3494]/10 border border-[#8C3494]/40 rounded-xl text-left transition group">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-[#C084FC]">Rocket Cash In</span>
+              <span class="text-xs opacity-0 group-hover:opacity-100 transition">▶</span>
+            </div>
+            <div class="text-base font-bold text-white mt-1">Tk 850.00</div>
+            <div class="text-[10px] text-slate-400 mt-0.5">from 01911223344</div>
+          </button>
+        </div>
+
+        <!-- Custom SMS Input Accordion -->
+        <div class="mt-4 pt-3 border-t border-slate-800">
+          <label class="text-xs text-slate-300 font-semibold">কাস্টম এসএমএস লিখে পাঠান:</label>
+          <div class="grid grid-cols-4 gap-2 mt-2">
+            <input id="custom-sender" type="text" value="bKash" placeholder="Sender" class="col-span-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
+            <input id="custom-body" type="text" value="You have received Tk 2,500.00 from 01799887766. Ref PackPro. Fee Tk 0.00. Balance Tk 4,500.00. TrxID 9K99CUSTOM at 16/11/2026 13:50" class="col-span-3 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white">
+          </div>
+          <button onclick="sendCustomSms()" class="mt-2.5 w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-semibold shadow transition">
+            এসএমএস ইনজেক্ট করুন (Send SMS to Phone)
+          </button>
+        </div>
+      </div>
+
+      <!-- Panel 2: Live Webhook & Database Dispatch Inspector -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-3">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span class="text-base">🌐</span> Easy Q Webhook ডাটাবেজ API ইন্সপেক্টর
+          </h3>
+          <span id="api-status-badge" class="text-xs font-mono px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800 font-semibold">
+            HTTP 200 OK
+          </span>
+        </div>
+
+        <p class="text-xs text-slate-400">
+          ফোনে এসএমএস আসা মাত্রই অ্যাপটি নিচের JSON পে-লোডটি তৈরি করে সরাসরি আপনার সার্ভারে POST পাঠায়:
+        </p>
+
+        <!-- Live JSON Code Window -->
+        <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 overflow-x-auto">
+          <pre id="json-viewer" class="mono text-xs text-emerald-400 leading-relaxed">{
+  "status": "ready",
+  "message": "Waiting for incoming mobile banking SMS..."
+}</pre>
+        </div>
+
+        <!-- Package Activation Confirmation Box -->
+        <div id="activation-box" class="bg-blue-950/40 border border-blue-500/30 rounded-xl p-3 hidden">
+          <div class="flex items-center gap-2 text-xs font-bold text-blue-300">
+            <span>⚡</span> প্যাকেজ অ্যাক্টিভেশন স্ট্যাটাস (Auto Package Activation)
+          </div>
+          <div id="activation-text" class="text-xs text-slate-300 mt-1">
+            অপেক্ষা করছে...
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: TrxID Usage Tracker (Used vs Unused Checker) -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+              <span class="text-base">🔍</span> ট্রানজেকশন আইডি স্ট্যাটাস চেকার (Used vs Unused)
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">কোন TrxID ব্যবহার হয়েছে এবং কোনটি অব্যবহৃত আছে তা তাৎক্ষণিক চেক করুন</p>
+          </div>
+
+          <!-- TrxID Search Bar -->
+          <div class="relative w-full sm:w-64">
+            <input id="trx-search-input" onkeyup="searchTrxId()" type="text" placeholder="TrxID দিয়ে খুঁজুন..." class="w-full bg-slate-950 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+            <span class="absolute left-2.5 top-2 text-slate-500 text-xs">🔎</span>
+          </div>
+        </div>
+
+        <!-- Filter Chips & Counters -->
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-1.5">
+            <button onclick="filterTrxTable('all')" id="tab-filter-all" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white font-semibold text-[11px]">
+              সবগুলো (<span id="count-all">0</span>)
+            </button>
+            <button onclick="filterTrxTable('unused')" id="tab-filter-unused" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-800/60 font-semibold text-[11px]">
+              🟢 অব্যবহৃত / Unused (<span id="count-unused">0</span>)
+            </button>
+            <button onclick="filterTrxTable('used')" id="tab-filter-used" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-800/60 font-semibold text-[11px]">
+              🔵 ব্যবহৃত / Used (<span id="count-used">0</span>)
+            </button>
+          </div>
+
+          <div class="text-[11px] text-slate-400">
+            টোটাল TrxID: <span id="total-trx-sum" class="font-bold text-white">0</span> টি
+          </div>
+        </div>
+
+        <!-- TrxID Ledger Table -->
+        <div class="border border-slate-800 rounded-xl overflow-hidden bg-slate-950">
+          <div class="overflow-x-auto max-h-[300px]">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-800/90 text-slate-400 text-[11px] sticky top-0 border-b border-slate-700">
+                <tr>
+                  <th class="py-2.5 px-3">TrxID</th>
+                  <th class="py-2.5 px-3">অপারেটর</th>
+                  <th class="py-2.5 px-3">টাকার পরিমাণ</th>
+                  <th class="py-2.5 px-3">গ্রাহক নম্বর</th>
+                  <th class="py-2.5 px-3">স্ট্যাটাস</th>
+                  <th class="py-2.5 px-3 text-right">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="trx-ledger-body" class="divide-y divide-slate-800/60">
+                <tr id="trx-table-empty">
+                  <td colspan="6" class="py-8 text-center text-slate-500 text-xs">
+                    কোনো ট্রানজেকশন ডাটা পাওয়া যায়নি।<br>
+                    উপরে এসএমএস সেন্ডার থেকে একটি টেস্ট এসএমএস পাঠান!
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Verification Search Result Card -->
+        <div id="search-result-banner" class="hidden p-3 rounded-xl border text-xs"></div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Sound Generator using Web Audio API -->
+  <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playSmsChime() {
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.4);
+      } catch (e) {}
+    }
+
+    // App State
+    let isServiceActive = true;
+    let smsCounter = 0;
+    let syncCounter = 0;
+    let totalCollectedAmount = 0.0;
+    let trxLedger = []; // Stores all received transactions with USED / UNUSED state
+    let activeFilter = 'all';
+
+    // Clock updater
+    setInterval(() => {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      document.getElementById('phone-clock').innerText = timeStr;
+    }, 1000);
+
+    function toggleService() {
+      isServiceActive = !isServiceActive;
+      const dot = document.getElementById('service-dot');
+      const label = document.getElementById('service-label');
+      const sub = document.getElementById('service-sub');
+      const btn = document.getElementById('service-btn');
+      const knob = document.getElementById('service-knob');
+
+      if (isServiceActive) {
+        dot.className = "w-3 h-3 rounded-full bg-emerald-500 animate-pulse";
+        label.innerText = "Listening 24/7 for SMS";
+        sub.innerText = "Foreground Service ACTIVE";
+        btn.className = "w-11 h-6 bg-emerald-600 rounded-full p-0.5 transition-colors relative flex items-center";
+        knob.className = "w-5 h-5 bg-white rounded-full shadow transform translate-x-5 transition-transform duration-200";
+      } else {
+        dot.className = "w-3 h-3 rounded-full bg-red-500";
+        label.innerText = "Service Stopped";
+        sub.innerText = "Monitoring Paused";
+        btn.className = "w-11 h-6 bg-slate-700 rounded-full p-0.5 transition-colors relative flex items-center";
+        knob.className = "w-5 h-5 bg-white rounded-full shadow transform translate-x-0 transition-transform duration-200";
+      }
+    }
+
+    function toggleAppTab(tab) {
+      if (tab === 'settings') {
+        document.getElementById('tab-dashboard').classList.add('hidden');
+        document.getElementById('tab-settings').classList.remove('hidden');
+      } else {
+        document.getElementById('tab-dashboard').classList.remove('hidden');
+        document.getElementById('tab-settings').classList.add('hidden');
+      }
+    }
+
+    function generateRandomTrx(prefix) {
+      const chars = "0123456789ABCDEFGHJKLMNPQRSTUVWXYZ";
+      let result = prefix;
+      for (let i = 0; i < 8; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+
+    function sendPresetSms(provider) {
+      const now = new Date();
+      const dateStr = now.toLocaleDateString('en-GB') + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      if (provider === 'bkash') {
+        const trx = generateRandomTrx("9K");
+        const body = `You have received Tk 500.00 from 01712345678. Ref EasyQ101. Fee Tk 0.00. Balance Tk 3,450.00. TrxID ${trx} at ${dateStr}`;
+        processIncomingSms("bKash", body, 500, "01712345678", trx, "RECEIVED_MONEY", "EasyQ101");
+      } else if (provider === 'nagad') {
+        const trx = generateRandomTrx("71");
+        const body = `Cash In of Tk 1200.00 from 01898765432 is successful. TxnID: ${trx} at ${dateStr}. Balance: Tk 5,200.00`;
+        processIncomingSms("Nagad", body, 1200, "01898765432", trx, "CASH_IN", "");
+      } else if (provider === 'rocket') {
+        const trx = generateRandomTrx("DB");
+        const body = `Cash In Tk. 850.00 from 01911223344 successful. Fee Tk. 0.00. Balance Tk. 2,800.00. TxnId: ${trx} at ${dateStr}`;
+        processIncomingSms("Rocket", body, 850, "01911223344", trx, "CASH_IN", "");
+      }
+    }
+
+    function sendCustomSms() {
+      const sender = document.getElementById('custom-sender').value.trim();
+      const body = document.getElementById('custom-body').value.trim();
+
+      // Simple regex parse
+      let trx = (body.match(/(?:TrxID|TxnID|TxnId)[:\s]+([A-Za-z0-9]+)/i) || [])[1] || generateRandomTrx("TX");
+      let amt = parseFloat((body.match(/(?:Tk|Tk\.|BDT)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i) || [])[1]?.replace(/,/g, '')) || 1000;
+      let phone = (body.match(/from\s+(?:A\/C:?\s*)?(\+?8801[3-9][0-9]{8,9}|01[3-9][0-9]{8,9})/i) || [])[1] || "01700000000";
+
+      let provider = "bKash";
+      if (sender.toLowerCase().includes("nagad") || body.toLowerCase().includes("nagad")) provider = "Nagad";
+      if (sender.includes("16216") || body.toLowerCase().includes("rocket")) provider = "Rocket";
+
+      processIncomingSms(provider, body, amt, phone, trx, "RECEIVED_MONEY", "CustomOrder");
+    }
+
+    function processIncomingSms(provider, body, amount, senderNumber, trxId, type, ref) {
+      playSmsChime();
+
+      // Show phone heads-up notification
+      const notif = document.getElementById('heads-up-notification');
+      document.getElementById('notif-sender').innerText = provider;
+      document.getElementById('notif-text').innerText = body;
+      notif.classList.remove('hidden');
+      notif.classList.add('animate-slide-down');
+
+      setTimeout(() => {
+        notif.classList.add('hidden');
+      }, 4000);
+
+      smsCounter++;
+      document.getElementById('top-sms-count').innerText = smsCounter;
+
+      if (!isServiceActive) {
+        alert("সতর্কতা: অ্যাপের ব্যাকগ্রাউন্ড সার্ভিসটি বন্ধ রয়েছে! সার্ভিস চালু না থাকলে অটোমেশন কাজ করবে না।");
+        return;
+      }
+
+      // Hide empty state
+      const emptyState = document.getElementById('empty-state');
+      if (emptyState) emptyState.remove();
+
+      // Update counters
+      syncCounter++;
+      totalCollectedAmount += amount;
+      document.getElementById('top-sync-count').innerText = syncCounter;
+      document.getElementById('app-count').innerText = syncCounter + " টি";
+      document.getElementById('app-total').innerText = "Tk " + totalCollectedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+      // Add to Phone UI Feed
+      let providerColor = "#E2136E";
+      if (provider === "Nagad") providerColor = "#F7941D";
+      if (provider === "Rocket") providerColor = "#8C3494";
+
+      const txItem = document.createElement('div');
+      txItem.className = "bg-slate-800/90 border border-slate-700/80 rounded-xl p-2.5 text-xs animate-slide-down";
+      txItem.innerHTML = `
+        <div class="flex justify-between items-center">
+          <span class="font-bold" style="color: ${providerColor}">${provider} • ${type}</span>
+          <span class="font-bold text-emerald-400">Tk ${amount.toFixed(2)}</span>
+        </div>
+        <div class="flex justify-between text-[11px] text-slate-400 mt-1">
+          <span>${senderNumber}</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700">SYNCED (200)</span>
+        </div>
+        <div class="text-[10px] text-slate-500 mt-1 flex justify-between">
+          <span>TrxID: ${trxId}</span>
+          <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+      `;
+      const txList = document.getElementById('app-tx-list');
+      txList.insertBefore(txItem, txList.firstChild);
+
+      // Add to TrxID Ledger
+      const newTx = {
+        trxId: trxId,
+        provider: provider,
+        amount: amount,
+        senderNumber: senderNumber,
+        status: 'UNUSED',
+        packageName: null,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        raw: body
+      };
+      trxLedger.unshift(newTx);
+      renderTrxTable();
+
+      // Build JSON API Payload
+      const payload = {
+        provider: provider,
+        transactionType: type,
+        amount: amount,
+        currency: "BDT",
+        senderNumber: senderNumber,
+        trxId: trxId,
+        reference: ref,
+        smsTimestamp: Date.now(),
+        smsTimeFormatted: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        rawMessage: body,
+        deviceId: document.getElementById('cfg-device').value,
+        status: "DELIVERED_TO_EASY_Q_API",
+        httpResponse: 200
+      };
+
+      // Display in JSON viewer
+      document.getElementById('json-viewer').innerText = JSON.stringify(payload, null, 2);
+
+      // Show Package Activation Feedback
+      const actBox = document.getElementById('activation-box');
+      actBox.classList.remove('hidden');
+      document.getElementById('activation-text').innerHTML = `
+        টাকা রিসিভ হয়েছে: <strong>${provider} Tk ${amount.toFixed(2)}</strong> (TrxID: <span class="text-emerald-400 font-mono">${trxId}</span>)।<br>
+        স্ট্যাটাস: <span class="text-emerald-400 font-bold">🟢 UNUSED (অব্যবহৃত)</span> — ডাটাবেজে সংরক্ষিত হয়েছে, প্যাকেজ ক্লেইম করার জন্য প্রস্তুত।
+      `;
+    }
+
+    // TrxID Ledger Table Renderer
+    function renderTrxTable() {
+      const tbody = document.getElementById('trx-ledger-body');
+      const countAll = trxLedger.length;
+      const countUnused = trxLedger.filter(t => t.status === 'UNUSED').length;
+      const countUsed = trxLedger.filter(t => t.status === 'USED').length;
+
+      document.getElementById('count-all').innerText = countAll;
+      document.getElementById('count-unused').innerText = countUnused;
+      document.getElementById('count-used').innerText = countUsed;
+      document.getElementById('total-trx-sum').innerText = countAll;
+
+      let filtered = trxLedger;
+      if (activeFilter === 'unused') {
+        filtered = trxLedger.filter(t => t.status === 'UNUSED');
+      } else if (activeFilter === 'used') {
+        filtered = trxLedger.filter(t => t.status === 'USED');
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="py-6 text-center text-slate-500 text-xs">
+              এই ফিল্টারে কোনো ট্রানজেকশন নেই।
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(tx => {
+        const isUsed = tx.status === 'USED';
+        const statusBadge = isUsed 
+          ? `<span class="px-2 py-0.5 rounded-full bg-blue-950/80 text-blue-400 border border-blue-800 text-[10px] font-bold">🔵 USED (${tx.packageName || 'Active'})</span>`
+          : `<span class="px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800 text-[10px] font-bold">🟢 UNUSED</span>`;
+
+        const actionBtn = isUsed
+          ? `<span class="text-slate-500 text-[11px]">ইতিমধ্যে ব্যবহৃত</span>`
+          : `<button onclick="activatePackage('${tx.trxId}')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-[10px] font-bold shadow transition">
+               প্যাকেজ একটিভ করুন
+             </button>`;
+
+        let providerColor = "#E2136E";
+        if (tx.provider === "Nagad") providerColor = "#F7941D";
+        if (tx.provider === "Rocket") providerColor = "#C084FC";
+
+        return `
+          <tr class="hover:bg-slate-900/60 transition">
+            <td class="py-2.5 px-3 font-mono font-bold text-white">${tx.trxId}</td>
+            <td class="py-2.5 px-3 font-semibold" style="color: ${providerColor}">${tx.provider}</td>
+            <td class="py-2.5 px-3 font-bold text-emerald-400">Tk ${tx.amount.toFixed(2)}</td>
+            <td class="py-2.5 px-3 text-slate-400">${tx.senderNumber}</td>
+            <td class="py-2.5 px-3">${statusBadge}</td>
+            <td class="py-2.5 px-3 text-right">${actionBtn}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterTrxTable(filter) {
+      activeFilter = filter;
+      document.getElementById('tab-filter-all').className = filter === 'all' 
+        ? "px-2.5 py-1 rounded-lg bg-blue-600 text-white font-semibold text-[11px]"
+        : "px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 font-semibold text-[11px]";
+      
+      document.getElementById('tab-filter-unused').className = filter === 'unused' 
+        ? "px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-semibold text-[11px]"
+        : "px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-emerald-800/60 font-semibold text-[11px]";
+
+      document.getElementById('tab-filter-used').className = filter === 'used' 
+        ? "px-2.5 py-1 rounded-lg bg-blue-600 text-white font-semibold text-[11px]"
+        : "px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-blue-300 border border-blue-800/60 font-semibold text-[11px]";
+
+      renderTrxTable();
+    }
+
+    function activatePackage(trxId) {
+      const tx = trxLedger.find(t => t.trxId === trxId);
+      if (tx) {
+        tx.status = 'USED';
+        tx.packageName = "Easy Q Pack - Tk " + tx.amount;
+        renderTrxTable();
+        alert(`অভিনন্দন! TrxID: ${trxId} দিয়ে গ্রাহক ${tx.senderNumber}-এর জন্য প্যাকেজ সফলভাবে অ্যাক্টিভেট করা হয়েছে। এই TrxID এখন USED হিসেবে চিহ্নিত হয়েছে।`);
+      }
+    }
+
+    function searchTrxId() {
+      const query = document.getElementById('trx-search-input').value.trim().toUpperCase();
+      const banner = document.getElementById('search-result-banner');
+
+      if (!query) {
+        banner.classList.add('hidden');
+        return;
+      }
+
+      banner.classList.remove('hidden');
+      const found = trxLedger.find(t => t.trxId.toUpperCase() === query);
+
+      if (!found) {
+        banner.className = "p-3 rounded-xl border bg-red-950/40 border-red-500/40 text-red-300 text-xs";
+        banner.innerHTML = `
+          <strong>❌ TrxID পাওয়া যায়নি:</strong> "${query}" নামের কোনো পেমেন্ট আপনার অ্যাপে আসেনি বা এখনো পৌঁছায়নি। (ভুয়া TrxID সতর্কতা)
+        `;
+      } else if (found.status === 'UNUSED') {
+        banner.className = "p-3 rounded-xl border bg-emerald-950/40 border-emerald-500/40 text-emerald-300 text-xs";
+        banner.innerHTML = `
+          <div class="flex items-center justify-between">
+            <div>
+              <strong>🟢 অব্যবহৃত (VALID & UNUSED):</strong> TrxID <span class="font-mono font-bold">${found.trxId}</span> পাওয়া গেছে!<br>
+              টাকার পরিমাণ: <strong>Tk ${found.amount.toFixed(2)}</strong> (${found.provider}) | গ্রাহক: ${found.senderNumber}<br>
+              <span class="text-[11px] text-slate-300">এই TrxID এখনো কোনো প্যাকেজে ব্যবহার করা হয়নি, আপনি প্যাকেজ একটিভ করতে পারেন।</span>
+            </div>
+            <button onclick="activatePackage('${found.trxId}')" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-xs shrink-0">
+              এখনই একটিভ করুন
+            </button>
+          </div>
+        `;
+      } else {
+        banner.className = "p-3 rounded-xl border bg-blue-950/40 border-blue-500/40 text-blue-300 text-xs";
+        banner.innerHTML = `
+          <strong>🔵 ইতিমধ্যে ব্যবহৃত (ALREADY USED):</strong> TrxID <span class="font-mono font-bold">${found.trxId}</span> পূর্বে ব্যবহার করা হয়েছে!<br>
+          পূর্বে অ্যাক্টিভেট করা হয়েছে: <strong>${found.packageName}</strong> | পরিমাণ: Tk ${found.amount.toFixed(2)} (${found.provider})<br>
+          <span class="text-amber-300">⚠ একই TrxID দিয়ে পুনরায় প্যাকেজ নেওয়ার সুযোগ নেই।</span>
+        `;
+      }
+    }
+
+    function resetAll() {
+      smsCounter = 0;
+      syncCounter = 0;
+      totalCollectedAmount = 0.0;
+      trxLedger = [];
+      document.getElementById('top-sms-count').innerText = 0;
+      document.getElementById('top-sync-count').innerText = 0;
+      document.getElementById('app-count').innerText = "0 টি";
+      document.getElementById('app-total').innerText = "Tk 0.00";
+      document.getElementById('app-tx-list').innerHTML = `
+        <div id="empty-state" class="py-8 text-center text-slate-500 text-xs">
+          এখনো কোনো এসএমএস পাওয়া যায়নি।<br>
+          ডানপাশের প্যানেল থেকে যেকোনো একটি টেস্ট এসএমএস পাঠান!
+        </div>
+      `;
+      document.getElementById('json-viewer').innerText = '{\n  "status": "ready",\n  "message": "Waiting for incoming mobile banking SMS..."\n}';
+      document.getElementById('activation-box').classList.add('hidden');
+      document.getElementById('search-result-banner').classList.add('hidden');
+      document.getElementById('trx-search-input').value = "";
+      renderTrxTable();
+    }
+  </script>
+
+</body>
+</html>

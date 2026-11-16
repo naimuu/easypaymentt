@@ -27,6 +27,7 @@ public class ApiClient {
     public static final String KEY_API_URL = "api_url";
     public static final String KEY_API_KEY = "api_key";
     public static final String KEY_DEVICE_ID = "device_id";
+    public static final String KEY_RECEIVER_ACCOUNT = "receiver_account";
     public static final String KEY_SERVICE_ENABLED = "service_enabled";
     public static final String KEY_AUTO_RETRY = "auto_retry";
 
@@ -73,6 +74,10 @@ public class ApiClient {
         return id;
     }
 
+    public static String getReceiverAccount(Context context) {
+        return getPrefs(context).getString(KEY_RECEIVER_ACCOUNT, "");
+    }
+
     /**
      * Posts a parsed MFS transaction to the Easy Q Web API.
      */
@@ -80,8 +85,12 @@ public class ApiClient {
         String apiUrl = getApiUrl(context);
         String apiKey = getApiKey(context);
         String deviceId = getDeviceId(context);
+        String receiverAccount = getReceiverAccount(context);
 
         tx.setDeviceId(deviceId);
+        if (receiverAccount != null && !receiverAccount.isEmpty()) {
+            tx.setReceiverAccount(receiverAccount);
+        }
 
         String jsonPayload = gson.toJson(tx);
         RequestBody body = RequestBody.create(jsonPayload, MediaType.parse("application/json; charset=utf-8"));

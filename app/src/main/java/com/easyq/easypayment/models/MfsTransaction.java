@@ -20,6 +20,9 @@ public class MfsTransaction {
     @SerializedName("senderNumber")
     private String senderNumber; // Mobile number of sender
 
+    @SerializedName("receiverAccount")
+    private String receiverAccount; // Merchant number / receiver SIM receiving the money
+
     @SerializedName("trxId")
     private String trxId; // Unique Transaction ID (e.g. 9K48ABCDEF)
 
@@ -70,6 +73,9 @@ public class MfsTransaction {
 
     public String getSenderNumber() { return senderNumber; }
     public void setSenderNumber(String senderNumber) { this.senderNumber = senderNumber; }
+
+    public String getReceiverAccount() { return receiverAccount; }
+    public void setReceiverAccount(String receiverAccount) { this.receiverAccount = receiverAccount; }
 
     public String getTrxId() { return trxId; }
     public void setTrxId(String trxId) { this.trxId = trxId; }

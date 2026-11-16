@@ -18,7 +18,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 
 public class SettingsActivity extends AppCompatActivity {
 
-    private EditText etApiUrl, etApiKey, etDeviceId;
+    private EditText etApiUrl, etApiKey, etDeviceId, etReceiverAccount;
     private SwitchMaterial switchAutoRetry;
     private Button btnTestConnection, btnSaveSettings;
     private TextView tvTestResult;
@@ -37,6 +37,7 @@ public class SettingsActivity extends AppCompatActivity {
         etApiUrl = findViewById(R.id.etApiUrl);
         etApiKey = findViewById(R.id.etApiKey);
         etDeviceId = findViewById(R.id.etDeviceId);
+        etReceiverAccount = findViewById(R.id.etReceiverAccount);
         switchAutoRetry = findViewById(R.id.switchAutoRetry);
         btnTestConnection = findViewById(R.id.btnTestConnection);
         btnSaveSettings = findViewById(R.id.btnSaveSettings);
@@ -47,6 +48,7 @@ public class SettingsActivity extends AppCompatActivity {
         etApiUrl.setText(ApiClient.getApiUrl(this));
         etApiKey.setText(ApiClient.getApiKey(this));
         etDeviceId.setText(ApiClient.getDeviceId(this));
+        etReceiverAccount.setText(ApiClient.getReceiverAccount(this));
         switchAutoRetry.setChecked(prefs.getBoolean(ApiClient.KEY_AUTO_RETRY, true));
 
         btnTestConnection.setOnClickListener(v -> {
@@ -83,6 +85,7 @@ public class SettingsActivity extends AppCompatActivity {
             String url = etApiUrl.getText().toString().trim();
             String key = etApiKey.getText().toString().trim();
             String deviceId = etDeviceId.getText().toString().trim();
+            String receiverAcc = etReceiverAccount.getText().toString().trim();
             boolean autoRetry = switchAutoRetry.isChecked();
 
             if (url.isEmpty() || !url.startsWith("http")) {
@@ -94,6 +97,7 @@ public class SettingsActivity extends AppCompatActivity {
                     .putString(ApiClient.KEY_API_URL, url)
                     .putString(ApiClient.KEY_API_KEY, key)
                     .putString(ApiClient.KEY_DEVICE_ID, deviceId)
+                    .putString(ApiClient.KEY_RECEIVER_ACCOUNT, receiverAcc)
                     .putBoolean(ApiClient.KEY_AUTO_RETRY, autoRetry)
                     .apply();
 

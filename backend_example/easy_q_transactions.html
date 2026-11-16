@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Easy Q - ট্রানজেকশন আইডি ম্যানেজমেন্ট ও প্যাকেজ অ্যাক্টিভেশন প্যানেল</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Hind Siliguri', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+
+  <!-- Navbar -->
+  <header class="bg-slate-900 border-b border-slate-800 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <!-- Easy Q Logo -->
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-700 to-teal-500 flex items-center justify-center font-bold text-white shadow-lg shadow-blue-600/30 text-lg">
+          EQ
+        </div>
+        <div>
+          <h1 class="text-base font-bold text-white tracking-tight flex items-center gap-2">
+            Easy Q • ট্রানজেকশন ও প্যাকেজ অ্যাক্টিভেশন প্যানেল
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">Live System</span>
+          </h1>
+          <p class="text-xs text-slate-400">বিকাশ, নগদ ও রকেট পেমেন্ট ভেরিফিকেশন ও অটো প্যাকেজ ম্যানেজমেন্ট</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <button onclick="document.getElementById('api-doc-modal').classList.remove('hidden')" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+          <span>🔑</span> API Key ও ডাটা প্যাটার্ন
+        </button>
+        <button onclick="addDemoTransaction()" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-lg shadow-blue-600/20 flex items-center gap-1.5 transition">
+          <span>➕</span> নতুন ট্রানজেকশন সিমুলেট করুন
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 space-y-6">
+
+    <!-- Summary Counters (৪টি কার্ড) -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Card 1 -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold">
+          <span>মোট সংগৃহীত টাকা</span>
+          <span class="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 font-bold">৳</span>
+        </div>
+        <div id="stat-total-money" class="text-2xl font-bold text-emerald-400 mt-2 font-mono">
+          Tk 8,450.00
+        </div>
+        <div class="text-[11px] text-slate-400 mt-1">সব পেমেন্টের যোগফল</div>
+      </div>
+
+      <!-- Card 2: Pending -->
+      <div class="bg-slate-900 border border-amber-500/30 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-amber-400 text-xs font-semibold">
+          <span>পেন্ডিং / অব্যবহৃত ট্রানজেকশন</span>
+          <span class="p-1.5 rounded-lg bg-amber-500/10 text-amber-400">⏳</span>
+        </div>
+        <div id="stat-pending-count" class="text-2xl font-bold text-amber-400 mt-2 font-mono">
+          3 টি
+        </div>
+        <div class="text-[11px] text-slate-400 mt-1">টাকা এসেছে, প্যাকেজ অ্যাক্টিভেশন বাকি</div>
+      </div>
+
+      <!-- Card 3: Used -->
+      <div class="bg-slate-900 border border-blue-500/30 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-blue-400 text-xs font-semibold">
+          <span>ব্যবহৃত / একটিভ প্যাকেজ</span>
+          <span class="p-1.5 rounded-lg bg-blue-500/10 text-blue-400">✔</span>
+        </div>
+        <div id="stat-used-count" class="text-2xl font-bold text-blue-400 mt-2 font-mono">
+          5 টি
+        </div>
+        <div class="text-[11px] text-slate-400 mt-1">সফলভাবে প্যাকেজ চালু হয়েছে</div>
+      </div>
+
+      <!-- Card 4: Today -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-slate-400 text-xs font-semibold">
+          <span>আজকের মোট পেমেন্ট</span>
+          <span class="p-1.5 rounded-lg bg-purple-500/10 text-purple-400">📅</span>
+        </div>
+        <div id="stat-today-money" class="text-2xl font-bold text-purple-400 mt-2 font-mono">
+          Tk 3,750.00
+        </div>
+        <div class="text-[11px] text-slate-400 mt-1">আজ সারাদিনে প্রাপ্ত টাকা</div>
+      </div>
+    </div>
+
+    <!-- Main Table Container with Separate Tabs -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">
+      
+      <!-- Tab Header & Search Toolbar -->
+      <div class="p-4 border-b border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        
+        <!-- Separate Tabs -->
+        <div class="flex items-center gap-2 w-full md:w-auto">
+          <button onclick="switchTab('pending')" id="btn-tab-pending" class="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 transition">
+            <span>⏳</span> পেন্ডিং / অব্যবহৃত লিস্ট (<span id="tab-count-pending">3</span>)
+          </button>
+          <button onclick="switchTab('used')" id="btn-tab-used" class="flex-1 md:flex-initial px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold flex items-center justify-center gap-2 transition">
+            <span>✔</span> ব্যবহৃত / একটিভ প্যাকেজ লিস্ট (<span id="tab-count-used">5</span>)
+          </button>
+        </div>
+
+        <!-- Live Instant Search Bar -->
+        <div class="relative w-full md:w-80">
+          <input id="table-search" onkeyup="filterTableData()" type="text" placeholder="TrxID, গ্রাহক নম্বর বা মার্চেন্ট দিয়ে খুঁজুন..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500">
+          <span class="absolute left-3 top-2.5 text-slate-500 text-xs">🔍</span>
+        </div>
+      </div>
+
+      <!-- TAB 1: PENDING / UNUSED TABLE -->
+      <div id="content-tab-pending" class="overflow-x-auto">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-950 text-slate-400 text-[11px] border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-4">TrxID (ট্রানজেকশন আইডি)</th>
+              <th class="py-3 px-4">অপারেটর</th>
+              <th class="py-3 px-4">টাকার পরিমাণ</th>
+              <th class="py-3 px-4">গ্রাহক নম্বর (Sender)</th>
+              <th class="py-3 px-4">মার্চেন্ট একাউন্ট (Receiver)</th>
+              <th class="py-3 px-4">তারিখ ও সময়</th>
+              <th class="py-3 px-4">স্ট্যাটাস</th>
+              <th class="py-3 px-4 text-right">অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-pending" class="divide-y divide-slate-800">
+            <!-- Will be rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- TAB 2: USED / ACTIVATED TABLE -->
+      <div id="content-tab-used" class="overflow-x-auto hidden">
+        <table class="w-full text-left text-xs text-slate-300">
+          <thead class="bg-slate-950 text-slate-400 text-[11px] border-b border-slate-800">
+            <tr>
+              <th class="py-3 px-4">TrxID</th>
+              <th class="py-3 px-4">অপারেটর</th>
+              <th class="py-3 px-4">টাকার পরিমাণ</th>
+              <th class="py-3 px-4">গ্রাহক নম্বর</th>
+              <th class="py-3 px-4">মার্চেন্ট একাউন্ট</th>
+              <th class="py-3 px-4">একটিভ করা প্যাকেজ</th>
+              <th class="py-3 px-4">অ্যাক্টিভেশন সময়</th>
+              <th class="py-3 px-4">স্ট্যাটাস</th>
+              <th class="py-3 px-4 text-right">ডিটেইলস</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-used" class="divide-y divide-slate-800">
+            <!-- Will be rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL 1: Activate Package Modal -->
+  <div id="activate-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <span>⚡</span> গ্রাহকের প্যাকেজ অ্যাক্টিভেট করুন
+        </h3>
+        <button onclick="document.getElementById('activate-modal').classList.add('hidden')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs text-slate-400">ট্রানজেকশন আইডি (TrxID)</label>
+          <input id="modal-trx-id" type="text" readonly class="w-full mt-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-emerald-400">
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">টাকার পরিমাণ</label>
+          <input id="modal-amount" type="text" readonly class="w-full mt-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono font-bold text-white">
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">গ্রাহকের মোবাইল নম্বর</label>
+          <input id="modal-customer" type="text" class="w-full mt-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+        </div>
+
+        <div>
+          <label class="text-xs text-slate-400">প্যাকেজ নির্বাচন করুন</label>
+          <select id="modal-package-select" class="w-full mt-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white">
+            <option value="Easy Q 30 Days VIP Pack">Easy Q 30 Days VIP Pack (Tk 500)</option>
+            <option value="Easy Q Premium Monthly">Easy Q Premium Monthly (Tk 1,000)</option>
+            <option value="Easy Q 3 Months Starter">Easy Q 3 Months Starter (Tk 1,200)</option>
+            <option value="Easy Q 1 Year Enterprise">Easy Q 1 Year Enterprise (Tk 5,000)</option>
+            <option value="Custom Recharge Package">Custom Recharge Package</option>
+          </select>
+        </div>
+
+        <div class="pt-2 flex gap-2">
+          <button type="button" onclick="document.getElementById('activate-modal').classList.add('hidden')" class="flex-1 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold">বাতিল</button>
+          <button type="button" onclick="confirmPackageActivation()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow">অ্যাক্টিভেট ও লক করুন</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: API Documentation & Pattern Example Modal -->
+  <div id="api-doc-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div>
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <span>🔑</span> Easy Q API Key ও ডাটা প্যাটার্ন ফরম্যাট
+          </h3>
+          <p class="text-xs text-slate-400">যেকোনো অ্যাপ্লিকেশন থেকে পেমেন্ট অ্যাক্টিভেশন কানেক্ট করার গাইড</p>
+        </div>
+        <button onclick="document.getElementById('api-doc-modal').classList.add('hidden')" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <span class="font-bold text-slate-300">১. আপনার সিক্রেট API Key:</span>
+          <div class="mt-1 flex items-center gap-2 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <span class="mono text-emerald-400 font-bold select-all flex-1">eq_live_sec_8849f2a019d658b4ec91</span>
+            <button onclick="navigator.clipboard.writeText('eq_live_sec_8849f2a019d658b4ec91'); alert('API Key কপি করা হয়েছে!')" class="px-2.5 py-1 bg-blue-600 hover:bg-blue-500 text-white rounded text-[11px]">কপি করুন</button>
+          </div>
+          <p class="text-[11px] text-slate-500 mt-1">এটি আপনার Android APK-এর Settings স্ক্রিনে পেস্ট করুন। শুধুমাত্র এই Key ম্যাচ করলেই রিকোয়েস্ট গ্রহণযোগ্য হবে।</p>
+        </div>
+
+        <div>
+          <span class="font-bold text-slate-300">২. Android APK থেকে পাঠানো ডাটা প্যাটার্ন (Incoming SMS Webhook Payload):</span>
+          <pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 mono text-[11px] text-blue-300 mt-1 overflow-x-auto">{
+  "provider": "bKash",                    // bKash, Nagad, Rocket
+  "transactionType": "RECEIVED_MONEY",     // RECEIVED_MONEY, CASH_IN
+  "amount": 500.00,                       // টাকার পরিমাণ
+  "currency": "BDT",
+  "senderNumber": "01712345678",          // গ্রাহক নম্বর (যেখান থেকে টাকা এসেছে)
+  "receiverAccount": "01700000000",       // আপনার মার্চেন্ট একাউন্ট নম্বর
+  "trxId": "9K48ABCDEF",                  // ইউনিক ট্রানজেকশন আইডি
+  "reference": "Order #104",              // গ্রাহকের রেফারেন্স
+  "smsTimestamp": 1763284200000,
+  "deviceId": "Samsung_A54_SIM1"
+}</pre>
+        </div>
+
+        <div>
+          <span class="font-bold text-slate-300">৩. যেকোনো বাহ্যিক অ্যাপ/ওয়েবসাইট থেকে পেমেন্ট অ্যাক্টিভেশন রিকোয়েস্ট (Claim & Activate):</span>
+          <pre class="bg-slate-950 p-3 rounded-xl border border-slate-800 mono text-[11px] text-emerald-400 mt-1 overflow-x-auto">POST https://your-domain.com/webhook.php?action=activate
+Headers:
+  Authorization: Bearer eq_live_sec_8849f2a019d658b4ec91
+  Content-Type: application/json
+
+Request Body:
+{
+  "trx_id": "9K48ABCDEF",
+  "customer_phone": "01712345678",
+  "package_id": 5,
+  "package_name": "Easy Q 30 Days VIP Pack"
+}
+
+Response (HTTP 200 OK):
+{
+  "status": "success",
+  "message": "প্যাকেজ সফলভাবে অ্যাক্টিভেট হয়েছে এবং TrxID USED হিসেবে চিহ্নিত করা হয়েছে!",
+  "trx_id": "9K48ABCDEF",
+  "package": "Easy Q 30 Days VIP Pack"
+}</pre>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 text-right">
+        <button onclick="document.getElementById('api-doc-modal').classList.add('hidden')" class="px-4 py-1.5 bg-slate-800 text-white rounded-lg text-xs">বন্ধ করুন</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Data & Table Management Logic -->
+  <script>
+    // Initial Dataset
+    let transactions = [
+      {
+        trxId: "9K48ABCDEF",
+        provider: "bKash",
+        amount: 500.00,
+        senderNumber: "01712345678",
+        receiverAccount: "01700000000",
+        packageName: null,
+        status: "UNUSED",
+        time: "2026-11-16 14:10:00",
+        activatedAt: null
+      },
+      {
+        trxId: "71AB98ZZ12",
+        provider: "Nagad",
+        amount: 1200.00,
+        senderNumber: "01898765432",
+        receiverAccount: "01800000000",
+        packageName: null,
+        status: "UNUSED",
+        time: "2026-11-16 14:15:30",
+        activatedAt: null
+      },
+      {
+        trxId: "DB99887766",
+        provider: "Rocket",
+        amount: 850.00,
+        senderNumber: "01911223344",
+        receiverAccount: "01900000000",
+        packageName: null,
+        status: "UNUSED",
+        time: "2026-11-16 14:20:15",
+        activatedAt: null
+      },
+      {
+        trxId: "BK99221100",
+        provider: "bKash",
+        amount: 1000.00,
+        senderNumber: "01755667788",
+        receiverAccount: "01700000000",
+        packageName: "Easy Q Premium Monthly",
+        status: "USED",
+        time: "2026-11-16 12:00:00",
+        activatedAt: "2026-11-16 12:05:22"
+      },
+      {
+        trxId: "NG88776655",
+        provider: "Nagad",
+        amount: 500.00,
+        senderNumber: "01844332211",
+        receiverAccount: "01800000000",
+        packageName: "Easy Q 30 Days VIP Pack",
+        status: "USED",
+        time: "2026-11-16 11:30:00",
+        activatedAt: "2026-11-16 11:32:10"
+      },
+      {
+        trxId: "BK11223344",
+        provider: "bKash",
+        amount: 2500.00,
+        senderNumber: "01711998877",
+        receiverAccount: "01700000000",
+        packageName: "Easy Q 6 Months Starter",
+        status: "USED",
+        time: "2026-11-16 10:15:00",
+        activatedAt: "2026-11-16 10:18:45"
+      },
+      {
+        trxId: "RC55667788",
+        provider: "Rocket",
+        amount: 700.00,
+        senderNumber: "01988776655",
+        receiverAccount: "01900000000",
+        packageName: "Easy Q VIP Pack",
+        status: "USED",
+        time: "2026-11-16 09:40:00",
+        activatedAt: "2026-11-16 09:42:15"
+      },
+      {
+        trxId: "NG33445566",
+        provider: "Nagad",
+        amount: 1200.00,
+        senderNumber: "01622334455",
+        receiverAccount: "01800000000",
+        packageName: "Easy Q 3 Months Starter",
+        status: "USED",
+        time: "2026-11-15 18:20:00",
+        activatedAt: "2026-11-15 18:25:00"
+      }
+    ];
+
+    let currentActiveTab = 'pending';
+
+    function renderTables() {
+      const pendingList = transactions.filter(t => t.status === 'UNUSED');
+      const usedList = transactions.filter(t => t.status === 'USED');
+
+      // Update counters
+      document.getElementById('stat-pending-count').innerText = pendingList.length + " টি";
+      document.getElementById('stat-used-count').innerText = usedList.length + " টি";
+      document.getElementById('tab-count-pending').innerText = pendingList.length;
+      document.getElementById('tab-count-used').innerText = usedList.length;
+
+      const total = transactions.reduce((acc, t) => acc + t.amount, 0);
+      document.getElementById('stat-total-money').innerText = "Tk " + total.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+      // Render Pending Table
+      const tbodyPending = document.getElementById('tbody-pending');
+      if (pendingList.length === 0) {
+        tbodyPending.innerHTML = `<tr><td colspan="8" class="py-12 text-center text-slate-500 text-xs">কোনো পেন্ডিং ট্রানজেকশন নেই।</td></tr>`;
+      } else {
+        tbodyPending.innerHTML = pendingList.map(tx => {
+          let pColor = "text-pink-400";
+          if (tx.provider === "Nagad") pColor = "text-orange-400";
+          if (tx.provider === "Rocket") pColor = "text-purple-400";
+
+          return `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-3 px-4 font-mono font-bold text-white">${tx.trxId}</td>
+              <td class="py-3 px-4 font-semibold ${pColor}">${tx.provider}</td>
+              <td class="py-3 px-4 font-bold text-emerald-400 font-mono">Tk ${tx.amount.toFixed(2)}</td>
+              <td class="py-3 px-4">${tx.senderNumber}</td>
+              <td class="py-3 px-4 text-slate-400 font-mono">${tx.receiverAccount || '017xxxxxxxx'}</td>
+              <td class="py-3 px-4 text-slate-400 text-[11px]">${tx.time}</td>
+              <td class="py-3 px-4">
+                <span class="px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-bold">
+                  ⏳ UNUSED / পেন্ডিং
+                </span>
+              </td>
+              <td class="py-3 px-4 text-right">
+                <button onclick="openActivateModal('${tx.trxId}', '${tx.amount.toFixed(2)}', '${tx.senderNumber}')" class="px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold shadow transition">
+                  প্যাকেজ একটিভ করুন
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+
+      // Render Used Table
+      const tbodyUsed = document.getElementById('tbody-used');
+      if (usedList.length === 0) {
+        tbodyUsed.innerHTML = `<tr><td colspan="9" class="py-12 text-center text-slate-500 text-xs">কোনো ব্যবহৃত ট্রানজেকশন নেই।</td></tr>`;
+      } else {
+        tbodyUsed.innerHTML = usedList.map(tx => {
+          let pColor = "text-pink-400";
+          if (tx.provider === "Nagad") pColor = "text-orange-400";
+          if (tx.provider === "Rocket") pColor = "text-purple-400";
+
+          return `
+            <tr class="hover:bg-slate-800/40 transition">
+              <td class="py-3 px-4 font-mono font-bold text-white">${tx.trxId}</td>
+              <td class="py-3 px-4 font-semibold ${pColor}">${tx.provider}</td>
+              <td class="py-3 px-4 font-bold text-emerald-400 font-mono">Tk ${tx.amount.toFixed(2)}</td>
+              <td class="py-3 px-4">${tx.senderNumber}</td>
+              <td class="py-3 px-4 text-slate-400 font-mono">${tx.receiverAccount || '017xxxxxxxx'}</td>
+              <td class="py-3 px-4 font-bold text-blue-300">${tx.packageName}</td>
+              <td class="py-3 px-4 text-slate-400 text-[11px]">${tx.activatedAt || tx.time}</td>
+              <td class="py-3 px-4">
+                <span class="px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">
+                  ✔ ACTIVATED / ব্যবহৃত
+                </span>
+              </td>
+              <td class="py-3 px-4 text-right">
+                <button onclick="alert('TrxID: ${tx.trxId}\\nগ্রাহক: ${tx.senderNumber}\\nমার্চেন্ট: ${tx.receiverAccount}\\nপ্যাকেজ: ${tx.packageName}\\nঅ্যাক্টিভেশন সময়: ${tx.activatedAt}')" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded text-[11px]">
+                  দেখুন
+                </button>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    function switchTab(tab) {
+      currentActiveTab = tab;
+      const pendingContent = document.getElementById('content-tab-pending');
+      const usedContent = document.getElementById('content-tab-used');
+      const btnPending = document.getElementById('btn-tab-pending');
+      const btnUsed = document.getElementById('btn-tab-used');
+
+      if (tab === 'pending') {
+        pendingContent.classList.remove('hidden');
+        usedContent.classList.add('hidden');
+        btnPending.className = "flex-1 md:flex-initial px-4 py-2 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 text-xs font-bold flex items-center justify-center gap-2 transition";
+        btnUsed.className = "flex-1 md:flex-initial px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold flex items-center justify-center gap-2 transition";
+      } else {
+        pendingContent.classList.add('hidden');
+        usedContent.classList.remove('hidden');
+        btnUsed.className = "flex-1 md:flex-initial px-4 py-2 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/40 text-xs font-bold flex items-center justify-center gap-2 transition";
+        btnPending.className = "flex-1 md:flex-initial px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-bold flex items-center justify-center gap-2 transition";
+      }
+    }
+
+    function openActivateModal(trxId, amount, customer) {
+      document.getElementById('modal-trx-id').value = trxId;
+      document.getElementById('modal-amount').value = 'Tk ' + amount;
+      document.getElementById('modal-customer').value = customer;
+      document.getElementById('activate-modal').classList.remove('hidden');
+    }
+
+    function confirmPackageActivation() {
+      const trxId = document.getElementById('modal-trx-id').value;
+      const customer = document.getElementById('modal-customer').value;
+      const packName = document.getElementById('modal-package-select').value;
+
+      const tx = transactions.find(t => t.trxId === trxId);
+      if (tx) {
+        tx.status = 'USED';
+        tx.packageName = packName;
+        tx.senderNumber = customer;
+        tx.activatedAt = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        renderTables();
+        document.getElementById('activate-modal').classList.add('hidden');
+        alert(`সফল! TrxID: ${trxId} দিয়ে ${packName} অ্যাক্টিভেট করা হয়েছে এবং এটি "ব্যবহৃত লিস্ট"-এ স্থানান্তরিত হয়েছে।`);
+      }
+    }
+
+    function filterTableData() {
+      const q = document.getElementById('table-search').value.toLowerCase();
+      const currentTbodyId = currentActiveTab === 'pending' ? 'tbody-pending' : 'tbody-used';
+      const rows = document.getElementById(currentTbodyId).querySelectorAll('tr');
+      rows.forEach(r => {
+        const text = r.innerText.toLowerCase();
+        r.style.display = text.includes(q) ? '' : 'none';
+      });
+    }
+
+    function addDemoTransaction() {
+      const providers = ['bKash', 'Nagad', 'Rocket'];
+      const p = providers[Math.floor(Math.random() * providers.length)];
+      const randomTrx = "9K" + Math.random().toString(36).substring(2, 10).toUpperCase();
+      const amounts = [500, 1000, 1200, 2500];
+      const amt = amounts[Math.floor(Math.random() * amounts.length)];
+      const num = "017" + Math.floor(10000000 + Math.random() * 90000000);
+
+      transactions.unshift({
+        trxId: randomTrx,
+        provider: p,
+        amount: amt,
+        senderNumber: num,
+        receiverAccount: "01700000000",
+        packageName: null,
+        status: "UNUSED",
+        time: new Date().toISOString().replace('T', ' ').substring(0, 19),
+        activatedAt: null
+      });
+
+      renderTables();
+      alert(`নতুন ${p} ট্রানজেকশন (${randomTrx} - Tk ${amt}) পেন্ডিং লিস্টে যুক্ত হয়েছে!`);
+    }
+
+    // Initialize
+    renderTables();
+  </script>
+
+</body>
+</html>

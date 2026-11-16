@@ -84,6 +84,20 @@
                     android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Merchant Account / Receiver Number (e.g. 017xxxxxxxx)"
+                style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etReceiverAccount"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone" />
+            </com.google.android.material.textfield.TextInputLayout>
+
             <com.google.android.material.switchmaterial.SwitchMaterial
                 android:id="@+id/switchAutoRetry"
                 android:layout_width="match_parent"

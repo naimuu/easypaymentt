@@ -1,0 +1,41 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- Background Circle -->
+    <path
+        android:pathData="M54,4 C26.39,4 4,26.39 4,54 C4,81.61 26.39,104 54,104 C81.61,104 104,81.61 104,54 C104,26.39 81.61,4 54,4 Z"
+        android:fillColor="#1E3A8A" />
+
+    <!-- Inner Soft Radial Ring -->
+    <path
+        android:pathData="M54,14 C31.91,14 14,31.91 14,54 C14,76.09 31.91,94 54,94 C76.09,94 94,76.09 94,54 C94,31.91 76.09,14 54,14 Z"
+        android:strokeColor="#0D9488"
+        android:strokeWidth="2"
+        android:fillColor="#00000000" />
+
+    <!-- Stylized "Q" Outer Ring -->
+    <path
+        android:pathData="M52,26 C37.64,26 26,37.64 26,52 C26,66.36 37.64,78 52,78 C66.36,78 78,66.36 78,52 C78,37.64 66.36,26 52,26 Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="9"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+
+    <!-- Fast Payment Dynamic Arrow Tail for "Q" -->
+    <path
+        android:pathData="M64,64 L86,86 M86,72 L86,86 L72,86"
+        android:strokeColor="#10B981"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000" />
+
+    <!-- Center Lightning / Check Flash Symbol inside Q -->
+    <path
+        android:pathData="M55,36 L43,53 L51,53 L47,68 L61,50 L53,50 Z"
+        android:fillColor="#38BDF8" />
+
+</vector>

@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tvDialogTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="bKash - RECEIVED_MONEY"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary" />
+
+        <TextView
+            android:id="@+id/tvDetailAmount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tk 500.00"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_primary" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="@color/card_stroke"
+            android:layout_marginVertical="12dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Transaction ID (TrxID):"
+            android:textSize="12sp"
+            android:textColor="@color/text_muted" />
+
+        <TextView
+            android:id="@+id/tvDetailTrxId"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="9K48ABCDEF"
+            android:textSize="15sp"
+            android:textIsSelectable="true"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sender Mobile Number:"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_muted" />
+
+        <TextView
+            android:id="@+id/tvDetailSender"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="01712345678"
+            android:textSize="15sp"
+            android:textIsSelectable="true"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Time:"
+            android:textSize="12sp"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_muted" />
+
+        <TextView
+            android:id="@+id/tvDetailTime"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="2026-11-16 12:30:00"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Original Raw SMS:"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/text_muted" />
+
+        <TextView
+            android:id="@+id/tvDetailRawSms"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:background="#F1F5F9"
+            android:text="You have received Tk 500.00..."
+            android:textSize="13sp"
+            android:textIsSelectable="true"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="API Response Status:"
+            android:textSize="12sp"
+            android:layout_marginTop="12dp"
+            android:textColor="@color/text_muted" />
+
+        <TextView
+            android:id="@+id/tvDetailApiResponse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:background="#F1F5F9"
+            android:text="HTTP 200 OK"
+            android:textSize="12sp"
+            android:textColor="@color/text_secondary" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="18dp"
+            android:gravity="end">
+
+            <Button
+                android:id="@+id/btnClose"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Close" />
+
+            <Button
+                android:id="@+id/btnResend"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:backgroundTint="@color/secondary"
+                android:text="Resend to API" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

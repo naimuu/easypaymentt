@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand Colors for Easy Q / Easy Payment -->
+    <color name="primary">#1E3A8A</color> <!-- Deep Indigo -->
+    <color name="primary_variant">#172554</color>
+    <color name="primary_container">#DBEAFE</color>
+    <color name="on_primary">#FFFFFF</color>
+
+    <color name="secondary">#0D9488</color> <!-- Teal / Cyan accent -->
+    <color name="secondary_variant">#0F766E</color>
+    <color name="secondary_container">#CCFBF1</color>
+    <color name="on_secondary">#FFFFFF</color>
+
+    <!-- Status Colors -->
+    <color name="status_active">#10B981</color>
+    <color name="status_active_bg">#D1FAE5</color>
+    <color name="status_inactive">#EF4444</color>
+    <color name="status_inactive_bg">#FEE2E2</color>
+    <color name="status_pending">#F59E0B</color>
+    <color name="status_pending_bg">#FEF3C7</color>
+
+    <!-- MFS Provider Colors -->
+    <color name="bkash_pink">#E2136E</color>
+    <color name="nagad_orange">#F7941D</color>
+    <color name="rocket_purple">#8C3494</color>
+    <color name="upay_yellow">#FFC709</color>
+
+    <!-- Neutral Backgrounds -->
+    <color name="background">#F8FAFC</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="card_stroke">#E2E8F0</color>
+    <color name="text_primary">#0F172A</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_muted">#94A3B8</color>
+</resources>

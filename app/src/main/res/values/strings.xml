@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Easy Payment</string>
+    <string name="brand_subtitle">Easy Q Payment Webhook Gateway</string>
+
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_settings">API Settings</string>
+    <string name="title_history">Transactions</string>
+    <string name="title_test_parser">SMS Simulator</string>
+
+    <string name="service_status_running">Listening for SMS (24/7)</string>
+    <string name="service_status_stopped">Service Stopped</string>
+
+    <string name="stat_today_count">Today\'s Count</string>
+    <string name="stat_today_amount">Today\'s Total</string>
+    <string name="stat_sync_rate">Sync Success</string>
+
+    <string name="btn_start_service">Start Listener</string>
+    <string name="btn_stop_service">Stop Listener</string>
+    <string name="btn_save_settings">Save Settings</string>
+    <string name="btn_test_connection">Test API Connection</string>
+    <string name="btn_battery_optimization">Disable Battery Saver</string>
+    <string name="btn_grant_permissions">Grant SMS Permissions</string>
+</resources>
